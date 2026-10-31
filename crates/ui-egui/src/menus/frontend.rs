@@ -352,7 +352,10 @@ pub fn frontend(app: &mut EffectcraftApp, ctx: &egui::Context, id: &str, p: Valu
         }
         "window.editWorkspaces" => {
             let Some(name) = p.get("name").and_then(Value::as_str).map(str::to_string) else {
-                let cur = app.ui.workspace.clone();
+                // `initial` names the workspace the dialog opens on, without acting on it: the
+                // workspace menu passes the tab it was opened on, so Delete cannot reach another
+                // saved workspace than the one the user right-clicked.
+                let cur = p.get("initial").and_then(Value::as_str).map(str::to_string).unwrap_or_else(|| app.ui.workspace.clone());
                 crate::panels::dialogs::form(
                     app,
                     "Edit Workspaces",

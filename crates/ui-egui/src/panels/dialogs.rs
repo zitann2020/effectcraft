@@ -923,6 +923,22 @@ mod tests {
         assert_eq!((solid_command(&app.dialog_state), app.dialog_state.solid_pixel_aspect), ("layer.newSolid", 1.0));
     }
 
+    /// The workspace menu's Edit Workspaces acts on the tab it was opened on: the dialog opens on
+    /// that workspace, and nothing is renamed or deleted until the dialog is confirmed.
+    #[test]
+    fn the_workspace_dialog_opens_on_the_workspace_it_was_asked_for() {
+        let (mut app, ctx) = app();
+        crate::menus::invoke(&mut app, &ctx, "window.workspace", json!({ "name": "Standard" })).unwrap();
+        crate::menus::invoke(&mut app, &ctx, "window.editWorkspaces", json!({ "initial": "Review" })).unwrap();
+        assert_eq!(
+            (app.dialog, app.dialog_state.form.command.as_str()),
+            (Some(Dialog::Form), "window.editWorkspaces"),
+            "asking for the dialog's initial workspace acted on it instead of opening"
+        );
+        assert_eq!(app.dialog_state.form.params()["name"], json!("Review"));
+        assert_eq!(app.ui.workspace, "Standard", "the dialog switched the layout");
+    }
+
     #[test]
     fn new_comp_from_selection_asks_when_several_items_are_selected() {
         let (mut app, ctx) = app();

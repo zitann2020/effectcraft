@@ -844,14 +844,21 @@ fn ws_menu(app: &mut EffectcraftApp, ui: &mut egui::Ui, target: &str) {
     }
     ui.separator();
     if ui.button(crate::i18n::command_label("window.editWorkspaces", "Edit Workspaces...")).clicked() {
-        run_workspace_command(app, ui, "window.editWorkspaces");
+        // The dialog opens on the tab this menu was opened on; it does not switch to it, so the
+        // layout the user is looking at stays while they rename or delete another workspace.
+        run_workspace_command_with(app, ui, "window.editWorkspaces", json!({ "initial": target }));
         ui.close();
     }
 }
 
 /// Runs a workspace command, showing a failure in the status line as the menu bar does.
 fn run_workspace_command(app: &mut EffectcraftApp, ui: &egui::Ui, id: &str) {
-    if let Err(e) = crate::menus::invoke(app, ui.ctx(), id, json!({})) {
+    run_workspace_command_with(app, ui, id, json!({}));
+}
+
+/// [`run_workspace_command`], with the command's parameters.
+fn run_workspace_command_with(app: &mut EffectcraftApp, ui: &egui::Ui, id: &str, params: serde_json::Value) {
+    if let Err(e) = crate::menus::invoke(app, ui.ctx(), id, params) {
         app.ui.status = e;
     }
 }
